@@ -1,87 +1,119 @@
 
 import './css/styles.css';
-import { Notify } from 'notiflix/build/notiflix-notify-aio'
-import debounce from 'lodash.debounce'
-import API from './fetchCountries';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import API from './fetchImages';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const DEBOUNCE_DELAY = 300;
+
 
 const refs = {
+    form: document.querySelector('.search-form'),
     input: document.querySelector('input'),
-    card: document.querySelector('.country-info'),
-    list: document.querySelector('.country-list')
+    gallerry: document.querySelector('.gallery'),
+    btnLoading: document.querySelector('.load-more'),
+
 }
 
-refs.input.addEventListener('input', debounce(inputServerSearch, DEBOUNCE_DELAY))
+let gallerySet = new SimpleLightbox('.gallery a');
+let pageNumber = 1;
+let totalPage = 0;
+let renderImagesFromApi = '';
+let inputValue = null;
 
-function inputServerSearch (e) {
-    let name = e.target.value.trim();
-    if (name.length <= 1) {
-        refs.list.innerHTML = "";
-        refs.card.innerHTML = "";    
-    } else {
+refs.btnLoading.style.display = "none";
+
+refs.form.addEventListener('submit', onButtonSerachImages);
+refs.btnLoading.addEventListener('click', onBtnLoadingClick);
+
+gallerySet.on('show.simplelightbox', function (e) {});
+
+function onButtonSerachImages (e) {
+    e.preventDefault();
+    inputValue = refs.input.value
+    clearDisplayFromLastFetch()
     
-    API.fetchCountries(name) 
-   .then(responce => responce.json())
-   .then(countries => countriesMaker (countries))
-   .catch(rejectedResult)
+
+    API.fetchImages(inputValue, pageNumber)
+    .then(responce => responce.json())
+    .then(images => renderCardWithPhotos(images))
+
+
+ return inputValue
+}
+
+
+function renderCardWithPhotos(images) {
+    totalPage = Math.ceil(images.totalHits/40);   
+    if (totalPage > 1) {
+        refs.btnLoading.style.display = "block";
     }
-}
-
-function countryCardRender (country) {
-    country.map((i) => {
-        let countryLanuges = [];
-        i.languages.map((language) => countryLanuges.push(language.name))
- 
-       const countryCard = `<div class="country-card">
-       <div class="country-name-logo">
-       <img src="${i.flag}" alt="" height="25" width="50">
-       <h1 class="country-name">${i.name}</h1>
-       </div>
-       <p>
-           Capital: <span>${i.capital}</span>
-       </p>
-       <p>
-           Population: <span>${i.population}</span>
-       </p>
-       <p>
-           Languges: <span>${countryLanuges}</span>
-       </p>
-        </div>`  
-    refs.card.innerHTML = countryCard;
-    })    
-}
-
-function countryListRender (countries) {
-    let countryList = "";
-           countries.map((item) => {
-               countryList += `<li class="country-item">
-               <img src="${item.flag}" alt="" height="25" width="50">
-               <p class="contry-name">${item.name}</p>
-             </li>`
-             return countryList
-           })         
-           refs.list.innerHTML = countryList;
-}
-
-function rejectedResult() { 
-    Notify.warning('Oops, there is no country with that name');
-}
-
-function countriesMaker (countries) {
     
-    if (countries.length === 1) {
-        countryCardRender(countries)
-        refs.list.innerHTML = "";    
-        
-       } else if(countries.length <10 && countries.length > 1) {
-        refs.card.innerHTML = "";
-        countryListRender (countries)
-           
-       } else if (countries.length > 10) {
-        Notify.info('Too many matches found. Please enter a more specific name');
-        }
-        if(countries.status === 404) {
-            rejectedResult()
-        }
-  }
+    if(images.totalHits >= 1 && pageNumber === 1) {
+        Notify.success(`"Hooray! We found ${images.totalHits} images." `);
+    } else  if(images.totalHits === 0){
+        refs.btnLoading.style.display = "none";
+        Notify.failure('Sorry, there are no images matching your search query. Please try again');
+    }
+
+    
+    images.hits.map((image) => {     
+        const imageSearchCard = `<div class="photo-card">
+        <img src="${image.webformatURL}" alt="" loading="lazy" class="image-card" />
+        <div class="info">
+          <p class="info-item">
+            <b>Likes</b>
+            <br>${image.likes}</br>            
+          </p>
+          <p class="info-item">
+            <b>Views</b>
+            <br>${image.views}</br>            
+          </p>
+          <p class="info-item">
+            <b>Comments</b>
+            <br>${image.comments}</br>
+            
+          </p>
+          <p class="info-item">
+            <b>Downloads</b>
+            <br>${image.downloads}</br>
+            
+          </p>
+        </div>
+      </div>`;
+
+      renderImagesFromApi += imageSearchCard;
+
+    refs.gallerry.innerHTML =  renderImagesFromApi;
+
+    })
+       
+}
+
+
+function onBtnLoadingClick() {
+    if(pageNumber >= totalPage ) {       
+        Notify.info("We're sorry, but you've reached the end of search results");
+      
+    }
+    pageNumber += 1;
+     API.fetchImages(inputValue, pageNumber)
+    .then(responce => responce.json())
+    .then(images => renderCardWithPhotos(images))
+
+
+}
+
+
+
+function clearDisplayFromLastFetch () {
+
+    pageNumber = 1;
+    renderImagesFromApi = '';   
+    refs.gallerry.innerHTML = ''; 
+    }
+
+refs.gallerry.addEventListener('click', function () {
+    console.log('hi');
+   
+})
