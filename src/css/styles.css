@@ -14,6 +14,20 @@ h6 {
   margin-bottom: 0;
 }
 
+a,
+b,
+br {
+text-decoration: none;
+color: #000;
+
+
+
+} 
+
+a:visited {
+  color: #000;
+}
+
 ul {
   margin-top: 0;
   margin-bottom: 0;
@@ -99,6 +113,7 @@ body {
 }
 
 .info-item {
+  text-decoration: none;
  
   display: block;
 }
@@ -125,4 +140,8 @@ body {
   line-height: 1.87;
   letter-spacing: 0.06em;
   cursor: pointer;
+}
+
+.info-text {
+  text-decoration: none;
 }

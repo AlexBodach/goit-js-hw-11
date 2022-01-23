@@ -15,7 +15,7 @@ const refs = {
 
 }
 
-let gallerySet = new SimpleLightbox('.gallery a');
+let gallery = new SimpleLightbox('.gallery a');
 let pageNumber = 1;
 let totalPage = 0;
 let renderImagesFromApi = '';
@@ -26,7 +26,7 @@ refs.btnLoading.style.display = "none";
 refs.form.addEventListener('submit', onButtonSerachImages);
 refs.btnLoading.addEventListener('click', onBtnLoadingClick);
 
-gallerySet.on('show.simplelightbox', function (e) {});
+//gallery.on('show.simplelightbox', function (e) {});
 
 function onButtonSerachImages (e) {
     e.preventDefault();
@@ -60,10 +60,11 @@ function renderCardWithPhotos(images) {
     
     images.hits.map((image) => {     
         const imageSearchCard = `<div class="photo-card">
+        <a class="gallery__item" href='${image.largeImageURL}'>
         <img src="${image.webformatURL}" alt="" loading="lazy" class="image-card" />
         <div class="info">
           <p class="info-item">
-            <b>Likes</b>
+            <b class="info-text">Likes</b>
             <br>${image.likes}</br>            
           </p>
           <p class="info-item">
@@ -86,6 +87,7 @@ function renderCardWithPhotos(images) {
       renderImagesFromApi += imageSearchCard;
 
     refs.gallerry.innerHTML =  renderImagesFromApi;
+    gallery.refresh();
 
     })
        
@@ -118,3 +120,5 @@ refs.gallerry.addEventListener('click', function () {
     console.log('hi');
    
 })
+
+
