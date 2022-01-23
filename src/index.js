@@ -54,6 +54,7 @@ function renderCardWithPhotos(images) {
     } else  if(images.totalHits === 0){
         refs.btnLoading.style.display = "none";
         Notify.failure('Sorry, there are no images matching your search query. Please try again');
+        return
     }
 
     
